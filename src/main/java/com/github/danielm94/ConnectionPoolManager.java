@@ -85,15 +85,16 @@ public class ConnectionPoolManager {
      *
      * @return A valid database connection.
      * @throws InterruptedException If the thread is interrupted while waiting for a connection.
-     * @throws SQLException If a database access error occurs or the connection is not valid.
+     * @throws SQLException         If a database access error occurs or the connection is not valid.
      */
     public Connection getConnection() throws InterruptedException, SQLException {
         val highLoadThreshold = config.getHighLoadThreshold();
         val poolCapacityValue = poolCapacity.get();
         if (isPoolUnderHighLoad(poolCapacityValue, highLoadThreshold)) {
             handleHighLoad();
-            val numberOfNewConnections = (int) (poolCapacity.get() * config.getHighLoadConnectionGrowthFactor());
-            fillConnectionPool(numberOfNewConnections);
+        }
+        if (connectionPool.isEmpty()) {
+            topUpConnections();
         }
         val timeout = config.getConnectionFromPoolTimeout();
         var connection = connectionPool.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -111,7 +112,7 @@ public class ConnectionPoolManager {
      * Validates the connection before returning it to the pool.
      *
      * @param connection The database connection to return.
-     * @throws SQLException If a database access error occurs.
+     * @throws SQLException         If a database access error occurs.
      * @throws InterruptedException If the thread is interrupted while handling the connection return.
      */
     public void returnConnection(@NonNull Connection connection) throws SQLException, InterruptedException {
@@ -142,13 +143,13 @@ public class ConnectionPoolManager {
     /**
      * Handles low load scenarios by potentially shrinking the pool.
      *
-     * @throws SQLException If a database access error occurs during pool resizing.
+     * @throws SQLException         If a database access error occurs during pool resizing.
      * @throws InterruptedException If the thread is interrupted while shrinking the pool.
      */
     private synchronized void handleLowLoad() throws SQLException, InterruptedException {
         val poolCapacityValue = poolCapacity.get();
-        val minimumPossiblePoolSize = config.getInitialMaxPoolSize();
-        if (poolCapacityValue == minimumPossiblePoolSize) return;
+        val initialPoolSize = config.getInitialMaxPoolSize();
+        if (poolCapacityValue == initialPoolSize) return;
         val activeConnectionsValue = activeConnections.get();
         val loadFactor = (double) activeConnectionsValue / poolCapacityValue;
         val lowLoadThreshold = config.getLowLoadThreshold();
@@ -157,7 +158,8 @@ public class ConnectionPoolManager {
             if (lowLoadCount.incrementAndGet() >= config.getLowLoadHysteresisCount()) {
                 val poolShrinkFactor = config.getLowLoadPoolShrinkFactor();
 
-                val newPoolSize = Math.max(minimumPossiblePoolSize, (int) (poolCapacityValue * poolShrinkFactor));
+                val minimumPoolSize = Math.max(initialPoolSize, activeConnectionsValue);
+                val newPoolSize = Math.max(minimumPoolSize, (int) (poolCapacityValue * poolShrinkFactor));
                 shrinkPool(newPoolSize);
                 lowLoadCount.set(0);
             }
@@ -170,7 +172,7 @@ public class ConnectionPoolManager {
      *
      * @param newPoolCapacity The new capacity for the pool.
      * @throws InterruptedException If the thread is interrupted while shrinking the pool.
-     * @throws SQLException If a database access error occurs during connection closure.
+     * @throws SQLException         If a database access error occurs during connection closure.
      */
     private void shrinkPool(int newPoolCapacity) throws InterruptedException, SQLException {
         poolCapacity.set(newPoolCapacity);
@@ -281,5 +283,13 @@ public class ConnectionPoolManager {
             connection = createNewConnection();
         }
         return connection;
+    }
+
+    private synchronized void topUpConnections() throws SQLException {
+        val maxNumberOfNewConnections = config.getMaximumConnectionGrowthAmount();
+        var numberOfNewConnections = (int) (poolCapacity.get() * config.getHighLoadConnectionGrowthFactor());
+        numberOfNewConnections = Math.min(numberOfNewConnections, maxNumberOfNewConnections);
+        log.atInfo().log("Adding %d new connections to pool.", numberOfNewConnections);
+        fillConnectionPool(numberOfNewConnections);
     }
 }
