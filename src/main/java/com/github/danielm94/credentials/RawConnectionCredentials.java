@@ -12,16 +12,16 @@ public class RawConnectionCredentials implements ConnectionCredentials {
 
     @Override
     public String getUsername() {
-        return null;
+        return userName;
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return passWord;
     }
 
     @Override
     public String getBaseDatabaseUrl() {
-        return null;
+        return databaseUrl;
     }
 }
