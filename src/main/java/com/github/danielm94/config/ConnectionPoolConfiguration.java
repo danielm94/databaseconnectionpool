@@ -24,6 +24,8 @@ public interface ConnectionPoolConfiguration {
 
     double getHighLoadPoolGrowthFactor();
 
+    double getHighLoadConnectionGrowthFactor();
+
     double getLowLoadPoolShrinkFactor();
 
     int getLowLoadHysteresisCount();

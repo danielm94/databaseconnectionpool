@@ -20,6 +20,7 @@ public class DefaultPoolConfiguration implements ConnectionPoolConfiguration {
     public static final double HIGH_LOAD_GROWTH_FACTOR = 1.5;
     public static final double LOW_LOAD_GROWTH_FACTOR = 0.1;
     public static final int LOW_LOAD_HYSTERESIS_COUNT = 5;
+    public static final double HIGH_LOAD_CONNECTION_GROWTH_FACTOR = 0.1;
 
 
     @Override
@@ -75,6 +76,11 @@ public class DefaultPoolConfiguration implements ConnectionPoolConfiguration {
     @Override
     public double getHighLoadPoolGrowthFactor() {
         return HIGH_LOAD_GROWTH_FACTOR;
+    }
+
+    @Override
+    public double getHighLoadConnectionGrowthFactor() {
+        return HIGH_LOAD_CONNECTION_GROWTH_FACTOR;
     }
 
     @Override
