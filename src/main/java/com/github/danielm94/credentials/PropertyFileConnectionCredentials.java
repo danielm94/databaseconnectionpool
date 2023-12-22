@@ -23,26 +23,27 @@ public class PropertyFileConnectionCredentials implements ConnectionCredentials 
     @Override
     public String getUsername() {
         val username = properties.getProperty(USER_KEY);
-        if (username == null) logCouldNotFindKeyInProps(USER_KEY);
+        validateProperty(username, USER_KEY);
         return username;
     }
 
     @Override
     public String getPassword() {
         val password = properties.getProperty(PASSWORD_KEY);
-        if (password == null) logCouldNotFindKeyInProps(PASSWORD_KEY);
+        validateProperty(password, PASSWORD_KEY);
         return password;
     }
 
     @Override
     public String getBaseDatabaseUrl() {
         val url = properties.getProperty(URL_KEY);
-        if (url == null) logCouldNotFindKeyInProps(URL_KEY);
+        validateProperty(url, URL_KEY);
         return url;
     }
 
-    private static void logCouldNotFindKeyInProps(String key) {
-        log.atWarning()
-           .log("Could not find %s key inside of property file. Returning null.", key);
+    private static void validateProperty(String username, String userKey) {
+        if (username == null) {
+            throw new MissingPropertyException(String.format("Could not find %s key inside of property file.", userKey));
+        }
     }
 }
