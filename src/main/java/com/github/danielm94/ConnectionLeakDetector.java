@@ -1,7 +1,6 @@
 package com.github.danielm94;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.flogger.Flogger;
 import lombok.val;
 
@@ -51,23 +50,35 @@ public class ConnectionLeakDetector implements Runnable {
     }
 
     /**
+     * Checks if a connection is registered to the leak detector.
+     *
+     * @param connection The connection to check.
+     * @return True if registered, else false
+     */
+    public boolean isConnectionRegistered(@NonNull Connection connection) {
+        return outgoingConnectionPool.containsKey(connection);
+    }
+
+    /**
      * Checks all registered connections for leaks. If a connection is considered leaky,
      * it is handled appropriately and deregistered.
      *
      * @throws SQLException If an SQL exception occurs during the handling of a leaky connection.
      */
-    public synchronized void checkForLeaks() throws SQLException {
+    public synchronized void checkForLeaks() {
         val connectionsToCull = new HashSet<Connection>();
         for (val key : outgoingConnectionPool.keySet()) {
-            val now = System.currentTimeMillis();
-            val threshold = leakThreshold.toMillis();
-            val outgoingDuration = now - outgoingConnectionPool.get(key);
-            if (outgoingDuration > threshold) {
-                log.atWarning()
-                   .log("Detected a leak! Connection in use for %dms, exceeding threshold of %dms. Closing connection.",
-                           outgoingDuration, threshold);
-                ConnectionPoolManager.getInstance().handleLeakyConnections(key);
-                connectionsToCull.add(key);
+            try {
+                val now = System.currentTimeMillis();
+                val threshold = leakThreshold.toMillis();
+                val outgoingDuration = now - outgoingConnectionPool.get(key);
+                if (outgoingDuration > threshold) {
+                    log.atWarning().log("Detected a leak! Closing connection.");
+                    ConnectionPoolManager.getInstance().handleLeakyConnections(key);
+                    connectionsToCull.add(key);
+                }
+            } catch (SQLException e) {
+                log.atSevere().withCause(e).log("Exception occurred while handling a leaky connection.");
             }
         }
         connectionsToCull.forEach(this::deregisterConnection);
@@ -76,7 +87,7 @@ public class ConnectionLeakDetector implements Runnable {
     /**
      * The run method for the Runnable interface. Periodically checks for leaks.
      */
-    @SneakyThrows
+
     @Override
     public void run() {
         checkForLeaks();
