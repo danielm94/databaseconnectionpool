@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -249,16 +250,63 @@ class ConnectionPoolManagerTest {
         val config = getConfigurationFromPropertyFile(
                 "src/test/resources/com/github/danielm94/ConnectionPoolManagerTest/return-connection-should-detect-low-load-and-resize-test-config.properties");
         ConnectionPoolManager.initialize(config, H2_CREDENTIALS);
-
         val manager = ConnectionPoolManager.getInstance();
 
-        val connection = manager.getConnection();
-        val initialSize = manager.getPoolCapacity();
-        manager.returnConnection(connection);
-        val currentSize = manager.getPoolCapacity();
-        assertTrue(currentSize < initialSize);
+        val connections = new LinkedList<Connection>();
 
+        for (var i = 0; i < config.getInitialPoolSize(); i++) {
+            connections.add(manager.getConnection());
+        }
+
+        val initialSize = manager.getPoolCapacity();
+        var currentSize = manager.getPoolCapacity();
+        for (val connection : connections) {
+            manager.returnConnection(connection);
+            currentSize = manager.getPoolCapacity();
+            if (currentSize != initialSize) break;
+        }
+
+        assertTrue(currentSize < initialSize);
     }
+
+    @Test
+    void handleLeakyConnectionsShouldCloseLeakyConnection() throws SQLException {
+        ConnectionPoolManager.initialize(DEFAULT_CONFIG, H2_CREDENTIALS);
+        val mockConnection = mock(Connection.class);
+        ConnectionPoolManager.getInstance().handleLeakyConnections(mockConnection);
+        verify(mockConnection, times(1)).close();
+    }
+
+    @Test
+    void handleLeakyConnectionsShouldDecrementActiveConnections() throws SQLException, InterruptedException {
+        ConnectionPoolManager.initialize(DEFAULT_CONFIG, H2_CREDENTIALS);
+
+        val connection = ConnectionPoolManager.getInstance().getConnection();
+        val activeConnectionsBefore = ConnectionPoolManager.getInstance().getActiveConnections();
+
+        ConnectionPoolManager.getInstance().handleLeakyConnections(connection);
+        val actualConnections = ConnectionPoolManager.getInstance().getActiveConnections();
+        val expectedConnections = activeConnectionsBefore - 1;
+
+        assertEquals(expectedConnections, actualConnections);
+    }
+
+    @Test
+    void handleLeakyConnectionsShouldRemoveConnectionFromActiveSet() throws SQLException, InterruptedException {
+        ConnectionPoolManager.initialize(DEFAULT_CONFIG, H2_CREDENTIALS);
+        val connection = ConnectionPoolManager.getInstance().getConnection();
+        ConnectionPoolManager.getInstance().handleLeakyConnections(connection);
+        assertFalse(ConnectionPoolManager.getInstance().isConnectionActive(connection));
+    }
+
+    @Test
+    void handleLeakyConnectionsShouldHandleNullConnection() throws SQLException {
+        ConnectionPoolManager.initialize(DEFAULT_CONFIG, H2_CREDENTIALS);
+
+        assertThrows(NullPointerException.class, () -> ConnectionPoolManager.getInstance()
+                                                                            .handleLeakyConnections(null));
+    }
+
 
     private ConnectionPoolConfiguration getConfigurationFromPropertyFile(String propertyFilePath) throws
             IOException {
