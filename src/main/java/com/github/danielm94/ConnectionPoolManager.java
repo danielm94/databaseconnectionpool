@@ -136,6 +136,24 @@ public class ConnectionPoolManager {
     }
 
     /**
+     * Returns the number of free (available) connections in the pool.
+     *
+     * @return The number of available connections in the pool.
+     */
+    public int getFreeConnections() {
+        return connectionPool.size();
+    }
+
+    /**
+     * Returns the number of active (in-use) connections.
+     *
+     * @return The number of active connections.
+     */
+    public int getActiveConnections() {
+        return activeConnections.get();
+    }
+
+    /**
      * Handles low load scenarios by potentially shrinking the pool.
      *
      * @throws SQLException         If a database access error occurs during pool resizing.
