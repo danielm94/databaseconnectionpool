@@ -4,7 +4,27 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Author: Daniel Martins
+ * Defines the configuration specifications for a database connection pool.
+ * This interface provides methods to access various configuration parameters
+ * that control the behavior and properties of a connection pool. Implementations
+ * of this interface can provide customized configurations for different scenarios
+ * or environments.
+ *
+ * <p>Configuration parameters include:</p>
+ * <ul>
+ *     <li>Initial and maximum pool sizes to define the pool capacity boundaries.</li>
+ *     <li>Connection timeout settings to manage how long a client can wait for a connection.</li>
+ *     <li>Leak detection settings to monitor and handle potential connection leaks.</li>
+ *     <li>Validation timeout for testing the validity of connections.</li>
+ *     <li>Load management thresholds for dynamically resizing the pool based on the load.</li>
+ *     <li>Growth factors and shrink factors to control how the pool adjusts its size under different load conditions.</li>
+ *     <li>Hysteresis count to prevent frequent resizing under fluctuating loads.</li>
+ * </ul>
+ * <p>
+ * Implementations of this interface should ensure that these parameters are
+ * accessible and manageable, allowing for flexible and efficient connection pool management.
+ *
+ * @author Daniel Martins
  */
 public interface ConnectionPoolConfiguration {
 
