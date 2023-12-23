@@ -1,6 +1,6 @@
 package com.github.danielm94.config;
 
-import com.github.danielm94.MissingPropertyException;
+import com.github.danielm94.exceptions.MissingPropertyException;
 import lombok.NonNull;
 import lombok.val;
 

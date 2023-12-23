@@ -1,6 +1,6 @@
 package com.github.danielm94.credentials;
 
-import com.github.danielm94.MissingPropertyException;
+import com.github.danielm94.exceptions.MissingPropertyException;
 import lombok.NonNull;
 import lombok.extern.flogger.Flogger;
 import lombok.val;
