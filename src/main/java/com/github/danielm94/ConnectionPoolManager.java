@@ -248,7 +248,7 @@ public class ConnectionPoolManager {
     private synchronized void handleHighLoad() {
         val highLoadThreshold = config.getHighLoadThreshold();
         val poolCapacityValue = poolCapacity.get();
-        final var poolUnderHighLoad = isPoolUnderHighLoad(poolCapacityValue, highLoadThreshold);
+        val poolUnderHighLoad = isPoolUnderHighLoad(poolCapacityValue, highLoadThreshold);
         if (!poolUnderHighLoad) return;
         val maximumPoolSize = config.getMaximumPoolSize();
         if (poolCapacityValue == maximumPoolSize) return;
