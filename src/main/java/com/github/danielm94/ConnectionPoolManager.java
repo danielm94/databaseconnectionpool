@@ -1,11 +1,8 @@
 package com.github.danielm94;
 
 import com.github.danielm94.config.ConnectionPoolConfiguration;
-import com.github.danielm94.config.DefaultPoolConfiguration;
 import com.github.danielm94.credentials.ConnectionCredentials;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.flogger.Flogger;
 import lombok.val;
 
@@ -28,9 +25,7 @@ public class ConnectionPoolManager {
     private final ConnectionLeakDetector leakDetector;
     private final Set<Connection> activeConnectionSet;
     private boolean leakDetectionScheduled = false;
-    @Setter
-    @Getter
-    private ConnectionPoolConfiguration config;
+    private final ConnectionPoolConfiguration config;
 
 
     /**
@@ -40,8 +35,8 @@ public class ConnectionPoolManager {
      * @param credentials The credentials used for creating database connections.
      * @throws SQLException If a database access error occurs.
      */
-    private ConnectionPoolManager(ConnectionCredentials credentials) throws SQLException {
-        this.config = new DefaultPoolConfiguration();
+    private ConnectionPoolManager(ConnectionPoolConfiguration config, ConnectionCredentials credentials) throws SQLException {
+        this.config = config;
         this.poolCapacity = new AtomicInteger(config.getInitialMaxPoolSize());
         this.connectionPool = new ArrayBlockingQueue<>(poolCapacity.get());
         this.credentials = credentials;
@@ -73,9 +68,9 @@ public class ConnectionPoolManager {
      * @param credentials The credentials used for creating database connections.
      * @throws SQLException If a database access error occurs.
      */
-    public static synchronized void initialize(ConnectionCredentials credentials) throws SQLException {
+    public static synchronized void initialize(ConnectionPoolConfiguration config, ConnectionCredentials credentials) throws SQLException {
         if (instance == null) {
-            instance = new ConnectionPoolManager(credentials);
+            instance = new ConnectionPoolManager(config, credentials);
         }
     }
 
