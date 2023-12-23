@@ -1,5 +1,6 @@
 package com.github.danielm94.credentials;
 
+import com.github.danielm94.MissingPropertyException;
 import lombok.NonNull;
 import lombok.extern.flogger.Flogger;
 import lombok.val;
@@ -22,28 +23,24 @@ public class PropertyFileConnectionCredentials implements ConnectionCredentials 
 
     @Override
     public String getUsername() {
-        val username = properties.getProperty(USER_KEY);
-        validateProperty(username, USER_KEY);
-        return username;
+        return getAndValidateProperty(USER_KEY);
     }
 
     @Override
     public String getPassword() {
-        val password = properties.getProperty(PASSWORD_KEY);
-        validateProperty(password, PASSWORD_KEY);
-        return password;
+        return getAndValidateProperty(PASSWORD_KEY);
     }
 
     @Override
     public String getBaseDatabaseUrl() {
-        val url = properties.getProperty(URL_KEY);
-        validateProperty(url, URL_KEY);
-        return url;
+        return getAndValidateProperty(URL_KEY);
     }
 
-    private static void validateProperty(String username, String userKey) {
-        if (username == null) {
-            throw new MissingPropertyException(String.format("Could not find %s key inside of property file.", userKey));
+    private String getAndValidateProperty(String key) {
+        val property = properties.getProperty(key);
+        if (property == null) {
+            throw new MissingPropertyException(String.format("Could not find %s key inside of property file.", key));
         }
+        return property;
     }
 }
