@@ -1,46 +1,59 @@
-# Understanding Connection Pool in Java using JDBC
+# Database Connection Pool
 
-## Introduction
-A **connection pool** is a cache of database connections maintained so that the connections can be reused when future requests to the database are required. Connection pools are used to enhance the performance of executing commands on a database.
+## Overview
 
-## Components of a Connection Pool
-A connection pool typically consists of the following components:
+The Database Connection Pool project provides a robust solution for managing database connections efficiently. It
+includes features like connection leak detection, dynamic pool resizing under high and low load conditions, and
+configurable properties for easy customization.
 
-1. **Connection Pool Manager**:
-    - *Functionality*: Manages the creation, allocation, and management of the connection pool.
-    - *Purpose*: It ensures that connections are reused efficiently and closed when not needed.
+## Features
 
-2. **Database Connections**:
-    - *Functionality*: These are the actual connections to the database.
-    - *Purpose*: They are managed by the pool and provided to the application on demand.
+- **Connection Pool Management**: Efficient handling of database connections with dynamic resizing capabilities.
+- **Leak Detection**: Monitors and handles potential connection leaks, ensuring resource optimization.
+- **Configurable Settings**: Customizable settings through property files or direct configuration for flexibility and
+  ease of use.
+- **Unit Testing**: Thoroughly tested with unit tests ensuring reliability and stability.
 
-3. **Connection Objects**:
-    - *Functionality*: These objects wrap the real database connections.
-    - *Purpose*: They add additional features like tracking usage, testing for validity, and managing the lifecycle.
+## Project Structure
 
-4. **Configuration Parameters**:
-    - *Functionality*: Settings that determine the behavior of the connection pool, like the maximum number of connections, connection timeout, etc.
-    - *Purpose*: These parameters help in tuning the pool to match the application's performance needs.
+The project is organized as follows:
 
-5. **Connection Validator**:
-    - *Functionality*: Validates whether a connection is still valid before lending it to an application.
-    - *Purpose*: Ensures that the application always gets a valid and working connection.
+- `src`
+   - `main/java/com/github/danielm94`
+      - `ConnectionLeakDetector.java`: Responsible for detecting and handling leaky database connections.
+      - `ConnectionPoolManager.java`: Manages the database connection pool.
+      - `config`
+         - `ConnectionPoolConfiguration.java`: Interface for pool configuration.
+         - `DefaultPoolConfiguration.java`: Default implementation of the pool configuration.
+         - `PropertyFileConnectionPoolConfiguration.java`: Pool configuration using property files.
+      - `credentials`
+         - `ConnectionCredentials.java`: Interface for database credentials.
+         - `PropertyFileConnectionCredentials.java`: Credentials implementation using property files.
+         - `RawConnectionCredentials.java`: Direct credentials implementation.
+      - `exceptions`
+         - `MissingPropertyException.java`: Custom exception for missing properties.
+   - `test/java/com/github/danielm94`
+      - `ConnectionLeakDetectorTest.java`: Unit tests for connection leak detection.
+      - `ConnectionPoolManagerTest.java`: Unit tests for connection pool management.
 
-## How Connection Pool Works
-1. **Initialization**: When the application starts, the connection pool is created with a number of connections (based on the configuration).
+## Configuration
 
-2. **Requesting a Connection**: When the application needs to interact with the database, it requests a connection from the pool instead of creating a new one.
+The connection pool can be configured using property files or direct configuration. The configurations include initial
+pool size, maximum pool size, load thresholds, connection timeout settings, and more.
 
-3. **Using the Connection**: The application uses the connection to perform database operations.
+## Usage
 
-4. **Releasing the Connection**: After the operations are complete, the connection is returned to the pool for future use, rather than closing it.
+- Initialize the `ConnectionPoolManager` with desired credentials and configuration.
+- Use `getConnection()` to retrieve a database connection from the pool.
+- Return the connection to the pool using `returnConnection()` after use.
+- The pool automatically handles resizing and leak detection based on the configured parameters.
 
-5. **Connection Reuse**: The next time a connection is needed, the pool checks if there is a free connection available and provides it for reuse.
+## Dependencies
 
-## Benefits of Using Connection Pool
-- **Improved Performance**: Reusing existing connections significantly reduces the overhead of creating new connections.
-- **Resource Management**: Efficient management of a limited number of database connections.
-- **Scalability**: Easier to handle a large number of database requests.
+- Java JDK 8 or higher
+- JUnit 5 for unit testing
+- Mockito for mocking in tests
 
-## Conclusion
-Implementing a connection pool is crucial for applications that require frequent access to a database, as it greatly enhances performance and resource management.
+## License
+
+This project is licensed under the MIT License.
