@@ -13,6 +13,23 @@ import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Manages a pool of database connections to optimize performance and resource utilization.
+ * This class handles the creation, distribution, and management of connections to ensure
+ * efficient database access, especially in high-load scenarios. It supports functionalities
+ * such as connection validation, leak detection, and dynamic resizing of the connection pool
+ * based on the load.
+ * <p>
+ * The ConnectionPoolManager operates as a singleton, ensuring a single instance manages the
+ * pool across the application. It uses {@link ConnectionCredentials} for database connection
+ * details and {@link ConnectionPoolConfiguration} for configuring pool behaviors like
+ * initial size, maximum size, load thresholds, and leak detection parameters.
+ * <p>
+ * Usage of this class typically involves initializing it with the required configuration and
+ * credentials, after which connections can be acquired and returned through the pool manager.
+ * <p>
+ * Author: Daniel Martins
+ */
 @SuppressWarnings("LombokGetterMayBeUsed")
 @Flogger
 public class ConnectionPoolManager {
