@@ -4,22 +4,33 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Provides default configuration settings for a database connection pool.
+ * This class implements the {@link ConnectionPoolConfiguration} interface and offers predefined
+ * values for various pool parameters such as initial and maximum pool sizes, timeout settings,
+ * leak detection thresholds, and load management thresholds.
+ * <p>
+ * This default configuration is designed to provide a balanced setup suitable for a variety of
+ * use cases.
+ * <p>
+ * Author: Daniel Martins
+ */
 public class DefaultPoolConfiguration implements ConnectionPoolConfiguration {
-    public static final int INITIAL_MAX_POOL_SIZE = 50;
-    public static final int INITIAL_POOL_SIZE = 10;
-    public static final Duration CONNECTION_TIMEOUT = Duration.of(5, ChronoUnit.SECONDS);
-    public static final Duration CONNECTION_LEAK_THRESHOLD = Duration.of(5, ChronoUnit.MINUTES);
-    public static final int CONNECTION_VALIDATION_TIMEOUT_SECONDS = 10;
-    public static final int CONNECTION_LEAK_DETECTOR_SERVICE_INTERVAL = 2;
-    public static final TimeUnit CONNECTION_LEAK_DETECTOR_SERVICE_INTERVAL_UNIT = TimeUnit.MINUTES;
-    public static final double HIGH_LOAD_THRESHOLD = 0.9;
-    public static final double LOW_LOAD_THRESHOLD = 0.15;
-    public static final int MAXIMUM_POOL_SIZE = 125;
-    public static final double HIGH_LOAD_GROWTH_FACTOR = 1.5;
-    public static final double HIGH_LOAD_CONNECTION_GROWTH_FACTOR = 0.1;
-    public static final int MAXIMUM_CONNECTION_GROWTH_AMOUNT = 8;
-    public static final double LOW_LOAD_POOL_SHRINK_FACTOR = 0.5;
-    public static final int LOW_LOAD_HYSTERESIS_COUNT = 5;
+    private static final int INITIAL_MAX_POOL_SIZE = 50;
+    private static final int INITIAL_POOL_SIZE = 10;
+    private static final Duration CONNECTION_TIMEOUT = Duration.of(5, ChronoUnit.SECONDS);
+    private static final Duration CONNECTION_LEAK_THRESHOLD = Duration.of(5, ChronoUnit.MINUTES);
+    private static final int CONNECTION_VALIDATION_TIMEOUT_SECONDS = 10;
+    private static final int CONNECTION_LEAK_DETECTOR_SERVICE_INTERVAL = 2;
+    private static final TimeUnit CONNECTION_LEAK_DETECTOR_SERVICE_INTERVAL_UNIT = TimeUnit.MINUTES;
+    private static final double HIGH_LOAD_THRESHOLD = 0.9;
+    private static final double LOW_LOAD_THRESHOLD = 0.15;
+    private static final int MAXIMUM_POOL_SIZE = 125;
+    private static final double HIGH_LOAD_GROWTH_FACTOR = 1.5;
+    private static final double HIGH_LOAD_CONNECTION_GROWTH_FACTOR = 0.1;
+    private static final int MAXIMUM_CONNECTION_GROWTH_AMOUNT = 8;
+    private static final double LOW_LOAD_POOL_SHRINK_FACTOR = 0.5;
+    private static final int LOW_LOAD_HYSTERESIS_COUNT = 5;
 
     @Override
     public int getInitialMaxPoolSize() {
