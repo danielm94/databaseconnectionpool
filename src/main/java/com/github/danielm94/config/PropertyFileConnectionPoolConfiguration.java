@@ -47,6 +47,24 @@ public class PropertyFileConnectionPoolConfiguration implements ConnectionPoolCo
     private static final String LOW_LOAD_POOL_SHRINK_FACTOR = "low.load.pool.shrink.factor";
     private static final String LOW_LOAD_HYSTERESIS_COUNT = "low.load.hysteresis.count";
 
+    /**
+     * Constructs a new {@code PropertyFileConnectionPoolConfiguration} instance by loading
+     * connection pool configuration properties from the provided file input stream.
+     *
+     * <p>This constructor reads the connection pool configuration from a properties file
+     * represented by a {@link FileInputStream}. The properties file should contain
+     * key-value pairs defining various configuration settings for the connection pool,
+     * such as pool sizes, timeout settings, and thresholds for load handling.</p>
+     *
+     * <p>Example properties might include the initial maximum pool size, connection
+     * validation timeout, and load thresholds. Each property key should match the
+     * predefined static constants in this class.</p>
+     *
+     * @param propertyFile The file input stream of the properties file containing
+     *                     connection pool configurations. This parameter must not be null.
+     * @throws IOException          If an error occurs while reading from the {@code propertyFile}.
+     * @throws NullPointerException If {@code propertyFile} is null.
+     */
     public PropertyFileConnectionPoolConfiguration(@NonNull FileInputStream propertyFile) throws IOException {
         this.properties = new Properties();
         properties.load(propertyFile);
