@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Flogger
 public class ConnectionPoolManager {
     private static volatile ConnectionPoolManager instance;
@@ -68,7 +69,7 @@ public class ConnectionPoolManager {
      * @param credentials The credentials used for creating database connections.
      * @throws SQLException If a database access error occurs.
      */
-    public static synchronized void initialize(ConnectionPoolConfiguration config, ConnectionCredentials credentials) throws SQLException {
+    public static synchronized void initialize(@NonNull ConnectionPoolConfiguration config, @NonNull ConnectionCredentials credentials) throws SQLException {
         if (instance == null) {
             instance = new ConnectionPoolManager(config, credentials);
         }
@@ -109,6 +110,7 @@ public class ConnectionPoolManager {
      * @param connection The database connection to return.
      * @throws SQLException         If a database access error occurs.
      * @throws InterruptedException If the thread is interrupted while handling the connection return.
+     * @throws NullPointerException If the connection object is null.
      */
     public void returnConnection(@NonNull Connection connection) throws SQLException, InterruptedException {
         activeConnectionSet.remove(connection);
@@ -126,7 +128,8 @@ public class ConnectionPoolManager {
      * Handles connections that are detected as leaky by closing and removing them from the active set.
      *
      * @param connection The leaky connection to handle.
-     * @throws SQLException If a database access error occurs during connection closure.
+     * @throws SQLException         If a database access error occurs during connection closure.
+     * @throws NullPointerException If the connection object is null.
      */
     public void handleLeakyConnections(@NonNull Connection connection) throws SQLException {
         activeConnectionSet.remove(connection);
@@ -154,6 +157,35 @@ public class ConnectionPoolManager {
     }
 
     /**
+     * Returns the free connection capacity that the pool can hold before resizing.
+     *
+     * @return The free connection capacity of the pool.
+     */
+    public int getPoolCapacity() {
+        return poolCapacity.get();
+    }
+
+    /**
+     * Checks whether the leak detection service is scheduled.
+     *
+     * @return True if it's scheduled, else false.
+     */
+    public boolean isLeakDetectionServiceScheduled() {
+        return leakDetectionScheduled;
+    }
+
+    /**
+     * Checks if a connection has been handed out by the connection pool manager and is expected to return.
+     *
+     * @param connection The connection to check (not null)
+     * @return True if the connection is considered active and should be returned, else false.
+     * @throws NullPointerException If the connection object is null.
+     */
+    public boolean isConnectionActive(@NonNull Connection connection) {
+        return activeConnectionSet.contains(connection);
+    }
+
+    /**
      * Handles low load scenarios by potentially shrinking the pool.
      *
      * @throws SQLException         If a database access error occurs during pool resizing.
@@ -162,21 +194,28 @@ public class ConnectionPoolManager {
     private synchronized void handleLowLoad() throws SQLException, InterruptedException {
         val poolCapacityValue = poolCapacity.get();
         val initialPoolSize = config.getInitialMaxPoolSize();
-        if (poolCapacityValue == initialPoolSize) return;
+
+        val poolSizeIsAtLowestPossibleSize = poolCapacityValue == initialPoolSize;
+        if (poolSizeIsAtLowestPossibleSize) return;
+
         val activeConnectionsValue = activeConnections.get();
         val loadFactor = (double) activeConnectionsValue / poolCapacityValue;
         val lowLoadThreshold = config.getLowLoadThreshold();
 
-        if (loadFactor < lowLoadThreshold) {
-            if (lowLoadCount.incrementAndGet() >= config.getLowLoadHysteresisCount()) {
-                val poolShrinkFactor = config.getLowLoadPoolShrinkFactor();
+        val isNotUnderLowLoad = loadFactor >= lowLoadThreshold;
+        if (isNotUnderLowLoad) {
+            lowLoadCount.set(0);
+            return;
+        }
 
-                val minimumPoolSize = Math.max(initialPoolSize, activeConnectionsValue);
-                val newPoolSize = Math.max(minimumPoolSize, (int) (poolCapacityValue * poolShrinkFactor));
-                shrinkPool(newPoolSize);
-                lowLoadCount.set(0);
-            }
-        } else lowLoadCount.set(0);
+        if (lowLoadCount.incrementAndGet() >= config.getLowLoadHysteresisCount()) {
+            val poolShrinkFactor = config.getLowLoadPoolShrinkFactor();
+            val minimumPoolSize = Math.max(initialPoolSize, activeConnectionsValue);
+            val newPoolSize = Math.min(minimumPoolSize, (int) (poolCapacityValue * poolShrinkFactor));
+            shrinkPool(newPoolSize);
+            lowLoadCount.set(0);
+        }
+
     }
 
     /**
