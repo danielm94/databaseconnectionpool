@@ -2,7 +2,8 @@ package com.github.danielm94.credentials;
 
 /**
  * Interface defining the essential credentials required for establishing a database connection.
- * Author: Daniel Martins
+ *
+ * @author Daniel Martins
  */
 public interface ConnectionCredentials {
 
