@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Author: Daniel Martins
  */
-@SuppressWarnings("LombokGetterMayBeUsed")
 @Flogger
 public class ConnectionPoolManager {
     private static volatile ConnectionPoolManager instance;
